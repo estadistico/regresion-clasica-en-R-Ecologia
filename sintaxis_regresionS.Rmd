@@ -1,0 +1,266 @@
+---
+title: "Untitled"
+author: "julio"
+date: "12 de junio de 2022"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Tarea regresion
+
+Zarigüeya:
+
+Se cuenta con la información de 104 zarigüeyas y un conjunto de variables que se midieron para las mismas, estas variables son:
+1.	Case: Número de observación
+2.	Site: Sitio en que se atrapo la zarigüeya 
+3.	Hdlngth: longitud de la cabeza
+4.	Age: edad
+5.	Skullw: Ancho del cráneo 
+6.	Totlngth: Longitud total	
+7.	Sex: m: masculino, f: femenino  
+8.	Tail: Longitud de la cola
+9.	Footlgth: Largo del pie
+10.	Earconch: Longitud de la concha del oído
+11.	Eye: distancia del canto medial al canto lateral del ojo derecho	
+12.	Chest: circunferencia del pecho
+13.	Belly: circunferencia del vientre
+
+Objetivo: predecir la longitud de la cabeza de las zarigüeyas a partir del sexo, edad, y el resto de las variables (a excepción del número de caso y sitio en donde se atrapo la zarigüeya).
+
+```{r results='asis', message=FALSE,warning=FALSE}
+zarigueya <- read.csv("C:/Users/ms/Desktop/factorial R/tarea segubnda/possum.csv", header = TRUE, sep = ";", dec = ".", fill = TRUE)
+
+zarigueya$sex2 <- ifelse(zarigueya$sex == "m", 1, 0)
+
+```
+
+1.	Genere una matriz de gráficos de correlación entre las variables de la 3 a la 13, indique si debe de excluir alguna de las variables y la razón de la exclusión. 
+
+Se debe excluir la variable sexo (sex) debido a que dicha variable es de tipo cualitativa.
+
+```{r results='asis', message=FALSE,warning=FALSE}
+#pairs(~ hdlngth + age + skullw  + totlngth + taill + footlgth + earconch + eye + chest + belly, data = zarigueya)
+
+# Función para agregar coeficientes de correlación
+panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...) {
+    usr <- par("usr")
+    on.exit(par(usr))
+    par(usr = c(0, 1, 0, 1))
+    Cor <- cor(x, y)
+    txt <- paste0(prefix, format(c(Cor, 0.123456789), digits = digits)[1])
+    if(missing(cex.cor)) {
+        cex.cor <- 0.4 / strwidth(txt)
+    }
+    text(0.5, 0.5, txt,
+         cex = 1 + cex.cor * Cor) # Escala el texto al nivel de correlación
+}
+
+# Dibujamos la matriz de correlación
+pairs(~ hdlngth + age + skullw  + totlngth + taill + footlgth + earconch + eye + chest + belly,
+      upper.panel = panel.cor,    # Panel de correlación
+      lower.panel = panel.smooth, data=zarigueya) # Curvas de regresión suavizada
+```
+
+2.	A partir del gráfico que realizó en el punto anterior, evalué las relaciones entre la longitud de la cabeza y las demás variables, indiqué que tipo de relación se presenta entre las mismas (magnitud y dirección). 
+
+El el grafico anterior se aprecia quen la realcion entre la longitud de la cabeza: con age presenta una relacion positiva pero leve, como lo indica el coeficiente de correlacion 0.33, Con skullw   el coeficiciente de correlacion es 0.71 indica que la relacion es positiva moderada,  con totlngth presenta una realacion positiva moderada (0.67), con taill 0.28 presenta una relacion positiva pero leve, con footlgth 0.42 presenta una relacion positiva pero leve, con earconch 0.13 presenta relacion positiva pero casi nula, con eye 0.35 presenta relacion positiva pero leve, con chest 0.62 presenta relacion positiva moderada y  con belly 0.55 presenta relacion positiva moderada.
+
+3.	Realice las pruebas correctas para evaluar cuales correlaciones son importantes. Plantee de forma general, cuál prueba de hipótesis está de fondo. Resuma la información en una tabla. (Pares de variables, coef de correlación, prob asociada y decisión respecto a la hipótesis nula (rechazo o no rechazo)).
+
+Planteamos las hipotesis
+  Hipotesis nula: ρ = 0
+  Hipotesis alterna: ρ =| 0
+
+
+Al realizar el test de correlacion, No resulta significativa solo la relacion entre la longitud de la cabeza  y la Longitud de la concha del oído (earconch).
+
+```{r results='asis', message=FALSE,warning=FALSE,eval=FALSE}
+cor.test(zarigueya$hdlngth,zarigueya$age)
+cor.test(zarigueya$hdlngth,zarigueya$skullw)
+cor.test(zarigueya$hdlngth,zarigueya$totlngth)
+cor.test(zarigueya$hdlngth,zarigueya$taill)
+cor.test(zarigueya$hdlngth,zarigueya$footlgth)
+cor.test(zarigueya$hdlngth,zarigueya$earconch)
+cor.test(zarigueya$hdlngth,zarigueya$eye)
+cor.test(zarigueya$hdlngth,zarigueya$chest)
+cor.test(zarigueya$hdlngth,zarigueya$belly)
+```
+
+Table: Prueba de correlacion
+
+ **Pares de variables** |  **Coef de correlacion** | **prob asociada** | **Decisión**
+----------------------| ----------------------|------------------------|--------------|
+*Hdlngth vs age* | 0.3295047 | 0.0007661 | Rechazo H_0
+*Hdlngth vs skullw* | 0.7059007 | 2.2e-16 | Rechazo H_0
+*Hdlngth vs totlngth* | 0.6704015 | 1.744e-14 | Rechazo H_0
+*Hdlngth vs taill* | 0.275155 | 0.005356 | Rechazo H_0
+*Hdlngth vs footlgth* | 0.4159449 | 1.519e-05 | Rechazo H_0
+*Hdlngth vs earconch* | 0.1315761 | 0.1897 | No Rechazo H_0
+*Hdlngth vs eye* | 0.354688 | 0.0002734 | Rechazo H_0
+*Hdlngth vs chest* | 0.6210678 | 4.239e-12 | Rechazo H_0
+*Hdlngth vs belly* | 0.5454384 | 3.677e-09 | Rechazo H_0
+
+
+4.	Genere un modelo saturado (variables independientes de la 4 a la 13). (1 punto)
+
+```{r results='asis', message=FALSE,warning=FALSE}
+modelo1 <- lm(hdlngth ~ age + skullw + totlngth + sex2 + taill + footlgth + earconch + eye + chest + belly, data = zarigueya)
+summary(modelo1)
+```
+
+5.	Realice el procedimiento de selección de variables adecuado cuando se tiene el modelo saturado. Explique el procedimiento que está siguiendo para seleccionar variables.
+
+Para seleccionar las variables predictores para establcer el mejor modelo, vamos a considerar el Método paso a paso (stepwise) especificamnete  bajo el criterio backward, en el cual, se inicia con todas las variables disponibles incluidas como predictores. Se prueba a eliminar una a una cada variable, si se mejora el modelo, queda excluida. Este método permite evaluar cada variable en presencia de las otras. Encontramos el mejor modelo basado en AIC.
+
+```{r results='asis', message=FALSE,warning=FALSE}
+step(modelo1, direction ="backward")
+```
+
+Una vez realizado el precedimiento el mejor modelo es:
+
+```{r results='asis', message=FALSE,warning=FALSE}
+modelo2 <- lm(hdlngth ~ skullw + totlngth + sex2 + taill + belly, data = zarigueya)
+summary(modelo2)
+```
+
+6. A partir del modelo seleccionado en el punto 5, y del modelo del punto 4, analice los R^2  tanto múltiples como ajustados, comente a que se deben las diferencias de los valores.
+
+El modelo saturado genero un R-squared = 0.6963 y un R-squared ajustado = 0.6625. mientras que el mejor modelo genero un R-squared = 0.6845 y R-squared ajustado = 0.6679. Se aprecia que que ambos modelo presentan casi los mismos resultados, a pesar que en el mejor modelo todas las variables explicativas resultaron sognificativas.
+
+
+```{r results='asis', message=FALSE,warning=FALSE}
+summary(modelo1)
+summary(modelo2)
+```
+
+7. Interprete el R^2 múltiple del modelo seleccionado en el punto 5
+
+El R-squared es 0.6845 indica que longitud de la cabeza de las zarigüeyas es explicada en un 68.45% por las variables skullw, totlngth, sex2, taill y belly.
+
+8.A partir del modelo seleccionado en el punto 5, evalué el cumplimiento de los siguientes supuestos:
+  a.	Normalidad. Plantee las hipótesis. 
+  
+Hipotesis
+  Hipotesis nula: Los residuos tienen una distribucion normal.
+  Hipotesis alterna: Los residuos no tienen una distribucion normal.
+  
+Para constrastar la hipotesis, realizamos el test de Shapiro-Wilk, en cual genera un valor_p de 0.542, lo que indica que no se rechaza la hipotesis nula, por lo tanto, los residuos se distribuyen normal. 
+  
+```{r results='asis', message=FALSE,warning=FALSE}
+shapiro.test(residuals(modelo2))
+qqnorm(residuals(modelo2))
+qqline(residuals(modelo2))
+```
+
+  b.	Homocedasticidad. Plantee las hipótesis. 
+Hipotesis
+  Hipotesis nula: La varianza de los errores es constante.
+  Hipotesis alterna: La varianza de los errores no es constante.
+  
+Para constrastar la hipotesis, realizamos el score test, en cual genera un valor_p de 0.39654, lo que indica que no se rechaza la hipotesis nula, por lo tanto, los residuos tienen una varianza constante.
+  
+```{r results='asis', message=FALSE,warning=FALSE}
+library(car)
+ncvTest(modelo2)
+yest<-predict(modelo2) # y estimado
+ee <- residuals(modelo2) # residuos
+plot(yest,ee)
+```
+  c.	Linealidad 
+ 
+Al realizar el gráfico de la longitud de la cabeza con los valores estimados del mejor modelo, vemos que los puntos estan al rededor de la linea central, lño que es un indicativo para decir, que se cumple el supuesto de linealidad.    
+  
+```{r results='asis', message=FALSE,warning=FALSE}
+plot(zarigueya$hdlngth,yest, xlab="Longitud de la cabeza")
+abline(a=0, b=1, col="red")
+```
+ 
+  d.	No multicolinealidad 
+  
+Hipotesis
+  Hipotesis nula: No existe multicolinealidad
+  Hipotesis alterna: Existe multicolinealidad.
+  
+Para constrastar la hipotesis, calculamos los VIF para cada variable explicativa, vemos que los coeficientes calculados estan por debajo de 5, lo que indica que se cumple el supuesto de no  multicolinealidad.
+  
+```{r results='asis', message=FALSE,warning=FALSE}
+vif(modelo2)
+```
+
+9.	Con el modelo seleccionado en el punto 5, calcule la longitud de la cabeza de una zarigüeya con las siguientes características: sexo=f, ancho del cráneo= 59.7, longitud total=87, longitud de la cola=35, circunferencia del vientre=32.4. 
+
+El modelo estimado es:
+
+hdlngth = 32.75815 + 0.44989skullw + 0.40381totlngth + 1.16430sexo - 0.25335taill + 0.23938belly
+
+dadas las caracteristicas
+
+hdlngth = 32.75815 + 0.44989(59.7) + 0.40381(87) + 1.16430(0) - 0.25335(35) + 0.23938(32.4) = 93.63645. 
+
+Si sexo=f, ancho del cráneo= 59.7, longitud total=87, longitud de la cola=35 y circunferencia del vientre=32.4 se estima que la longitud de la cabeza sea de 93.63645.
+
+```{r results='asis', message=FALSE,warning=FALSE}
+nuevo <- data.frame(sex2=0, skullw= 59.7,totlngth= 87, taill=35, belly=32.4)
+nuevo
+predict(object=modelo2, newdata=nuevo)
+```
+
+
+10.Para el modelo seleccionado en el punto 5, calcule los intervalos de confianza para los coeficientes e interprete.  
+
+Para el mejor modelo, se estima para la interseccion con una confianza del 95% que el verdadero valor del coeficiente se encuentre entre 22.8725 y 42.6438. Para skullw se estima con una confianza del 95% que el verdadero valor del coeficiente se encuentre entre 0.2895 y 0.6103. Para totlngth se estima con una confianza del 95% que el verdadero valor del coeficiente se encuentre entre 0.2636 y 0.5439. Para sexo se estima con una confianza del 95% que el verdadero valor del coeficiente se encuentre entre 0.3168 y 2.0118. Para taill se estima con una confianza del 95% que el verdadero valor del coeficiente se encuentre entre -0.5021 y -0.0046. Para belly se estima con una confianza del 95% que el verdadero valor del coeficiente se encuentre entre 0.0623 y 0.4164.
+
+```{r results='asis', message=FALSE,warning=FALSE}
+confint(modelo2, conf.level=0.95) # I.C al 95%
+```
+
+
+Abulón:
+
+La edad del abulón se determina cortando la concha a través del cono, tiñéndola y contando el número de anillos a través de un microscopio. En el conjunto de datos se cuenta con las siguientes variables:
+Sexo: Masculino, femenino e infantil
+Longitud: Medida de la concha más larga (mm)
+Diámetro: perpendicular a la longitud (mm)
+Altura: con carne en la concha (mm)
+Peso completo (gramos)
+Peso de las vísceras: peso de las tripas (gramos)
+Peso de la concha (gramos)
+Anillos: conteo de anillos +1.5, representa la edad
+
+1.	Estime el modelo Poisson cuya variable dependiente es el conteo de anillos y como variables independientes son: sexo, longitud, altura y peso entero. 
+
+```{r results='asis', message=FALSE,warning=FALSE}
+# cargamos los datos
+load("C:/Users/ms/Desktop/factorial R/tarea segubnda/abalone.Rdata")
+# modelo
+res.glm<-glm(Anillos~Longitud + Altura + PesoCompleto + Sexo, family=poisson, data=abalone) 
+summary(res.glm)
+```
+
+2.	Comente el principal supuesto en que se basa la regresión de Poisson
+
+El principal supuesto es la ausencia de equidispersion, es decir, los datos presentan infradispersion (Var(Y) < E(Y)) o sobredispersion (Var(Y) > E(Y)).
+
+3. Verifique de manera manual si se cumple el supuesto que indico en el punto anterior. Comente
+
+Obtienemos el estadıstico desviacion, que  detecta sobredispersion en los datos: esto es, D/gl = 2804.1/494 = 5.6763, lo que indica, que no se cumple el supuesto de equidispersion, es deicr, existe sobredispersion en el modelo estimado.
+
+4. Indique que problema puede existir si se incluyen en el modelo las 3 variables de peso como variables independientes. 
+
+El modelo con las 3 variables independientes, genera sobredispersion en los datos, es decir, el modelo generado con este problema, algunas veces conduce a la confusion de que algunas variables explicativas contribuyen significativamente al modelo, cuando en realidad no es asi.
+
+5. Estime el modelo QuasiPoisson, interprete los coeficientes (que sean estadísticamente significativos, usando un nivel de significancia de 0.10) de la manera correcta
+
+```{r results='asis', message=FALSE,warning=FALSE}
+res.glm2 <- glm(Anillos~Longitud + Altura + PesoCompleto + Sexo, data = abalone, family = quasipoisson)
+summary(res.glm2)
+```
+
+
+Al apreciar el resultado del modelo quasipoisson, resulta significativa solo la variables independiente Longitud (Medida de la concha más larga). La longitud tiene un coeficiente 0.81292,lo que indica, al aumentar en un mm la Longitud aumenta el conteo medio de anillos en 2.2545. 
+
+
+
